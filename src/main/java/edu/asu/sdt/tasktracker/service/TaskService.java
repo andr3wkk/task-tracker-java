@@ -15,6 +15,18 @@ public class TaskService {
     private final List<Task> tasks = new ArrayList<>();
     private int nextId = 1;
 
+    public TaskService() {
+        // Starts with an empty task list.
+    }
+
+    public TaskService(List<Task> initialTasks) {
+        tasks.addAll(initialTasks);
+        nextId = tasks.stream()
+                .mapToInt(Task::getId)
+                .max()
+                .orElse(0) + 1;
+    }
+
     public Task createTask(Task task) {
         task.setId(nextId);
         nextId++;
