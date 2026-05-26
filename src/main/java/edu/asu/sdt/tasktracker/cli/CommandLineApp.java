@@ -1,11 +1,35 @@
 package edu.asu.sdt.tasktracker.cli;
 
+import edu.asu.sdt.tasktracker.model.Priority;
+import edu.asu.sdt.tasktracker.model.Task;
+import edu.asu.sdt.tasktracker.service.TaskService;
+import edu.asu.sdt.tasktracker.storage.JsonTaskStorage;
+import edu.asu.sdt.tasktracker.storage.TaskStorage;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.List;
+
 /**
  * Handles command-line input and output.
  */
 public class CommandLineApp {
+    private static final Path DATA_FILE = Path.of("data", "tasks.json");
 
     public void run(String[] args) {
+        TaskStorage storage = new JsonTaskStorage(DATA_FILE);
+
+        try {
+            TaskService taskService = new TaskService(storage.load());
+            handleCommand(args, taskService, storage);
+        } catch (IOException exception) {
+            System.out.println("Could not load or save task data.");
+            System.out.println("Reason: " + exception.getMessage());
+        }
+    }
+
+    private void handleCommand(String[] args, TaskService taskService, TaskStorage storage) throws IOException {
         if (args.length == 0) {
             printHelp();
             return;
@@ -15,8 +39,8 @@ public class CommandLineApp {
 
         switch (command) {
             case "help" -> printHelp();
-            case "add" -> printPlannedCommand("add");
-            case "list" -> printPlannedCommand("list");
+            case "add" -> addTask(args, taskService, storage);
+            case "list" -> listTasks(taskService.getAllTasks());
             case "update" -> printPlannedCommand("update");
             case "delete" -> printPlannedCommand("delete");
             case "search" -> printPlannedCommand("search");
@@ -25,6 +49,56 @@ public class CommandLineApp {
             case "export" -> printPlannedCommand("export");
             case "stats" -> printPlannedCommand("stats");
             default -> printUnknownCommand(command);
+        }
+    }
+
+    private void addTask(String[] args, TaskService taskService, TaskStorage storage) throws IOException {
+        if (args.length < 6) {
+            System.out.println("Missing arguments for add command.");
+            System.out.println("Usage:");
+            System.out.println("  ./gradlew run --args=\"add <title> <description> <priority> <category> <dueDate>\"");
+            System.out.println("Example:");
+            System.out.println("  ./gradlew run --args=\"add Study Read HIGH School 2026-06-01\"");
+            return;
+        }
+
+        try {
+            Task task = Task.builder()
+                    .title(args[1])
+                    .description(args[2])
+                    .priority(Priority.valueOf(args[3].toUpperCase()))
+                    .category(args[4])
+                    .dueDate(LocalDate.parse(args[5]))
+                    .build();
+
+            Task createdTask = taskService.createTask(task);
+            storage.save(taskService.getAllTasks());
+
+            System.out.println("Task created successfully with ID " + createdTask.getId() + ".");
+        } catch (IllegalArgumentException exception) {
+            System.out.println("Invalid priority. Use LOW, MEDIUM, or HIGH.");
+        } catch (DateTimeParseException exception) {
+            System.out.println("Invalid due date. Use format YYYY-MM-DD.");
+        }
+    }
+
+    private void listTasks(List<Task> tasks) {
+        if (tasks.isEmpty()) {
+            System.out.println("No tasks found.");
+            return;
+        }
+
+        System.out.printf("%-4s %-20s %-10s %-15s %-12s %-10s%n",
+                "ID", "Title", "Priority", "Category", "Due Date", "Status");
+
+        for (Task task : tasks) {
+            System.out.printf("%-4d %-20s %-10s %-15s %-12s %-10s%n",
+                    task.getId(),
+                    task.getTitle(),
+                    task.getPriority(),
+                    task.getCategory(),
+                    task.getDueDate(),
+                    task.getStatus());
         }
     }
 
