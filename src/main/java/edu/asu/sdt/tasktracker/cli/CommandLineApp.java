@@ -4,6 +4,8 @@ import edu.asu.sdt.tasktracker.exception.TaskNotFoundException;
 import edu.asu.sdt.tasktracker.model.Priority;
 import edu.asu.sdt.tasktracker.model.Task;
 import edu.asu.sdt.tasktracker.model.TaskStatus;
+import edu.asu.sdt.tasktracker.patterns.strategy.SortByDueDateStrategy;
+import edu.asu.sdt.tasktracker.patterns.strategy.SortByPriorityStrategy;
 import edu.asu.sdt.tasktracker.service.TaskService;
 import edu.asu.sdt.tasktracker.storage.JsonTaskStorage;
 import edu.asu.sdt.tasktracker.storage.TaskStorage;
@@ -45,9 +47,9 @@ public class CommandLineApp {
             case "list" -> listTasks(taskService.getAllTasks());
             case "update" -> updateTask(args, taskService, storage);
             case "delete" -> deleteTask(args, taskService, storage);
-            case "search" -> printPlannedCommand("search");
-            case "filter" -> printPlannedCommand("filter");
-            case "sort" -> printPlannedCommand("sort");
+            case "search" -> searchTasks(args, taskService);
+            case "filter" -> filterTasks(args, taskService);
+            case "sort" -> sortTasks(args, taskService);
             case "export" -> printPlannedCommand("export");
             case "stats" -> printPlannedCommand("stats");
             default -> printUnknownCommand(command);
@@ -143,6 +145,72 @@ public class CommandLineApp {
             System.out.println("Invalid task ID. Use a number.");
         } catch (TaskNotFoundException exception) {
             System.out.println(exception.getMessage());
+        }
+    }
+
+    private void searchTasks(String[] args, TaskService taskService) {
+        if (args.length < 2) {
+            System.out.println("Missing keyword for search command.");
+            System.out.println("Usage:");
+            System.out.println("  ./gradlew run --args=\"search <keyword>\"");
+            return;
+        }
+
+        List<Task> results = taskService.search(args[1]);
+        listTasks(results);
+    }
+
+    private void filterTasks(String[] args, TaskService taskService) {
+        if (args.length < 3) {
+            System.out.println("Missing arguments for filter command.");
+            System.out.println("Usage:");
+            System.out.println("  ./gradlew run --args=\"filter priority <LOW|MEDIUM|HIGH>\"");
+            System.out.println("  ./gradlew run --args=\"filter status <TODO|IN_PROGRESS|DONE>\"");
+            return;
+        }
+
+        String filterType = args[1].toLowerCase();
+
+        try {
+            switch (filterType) {
+                case "priority" -> {
+                    Priority priority = Priority.valueOf(args[2].toUpperCase());
+                    listTasks(taskService.filterByPriority(priority));
+                }
+                case "status" -> {
+                    TaskStatus status = TaskStatus.valueOf(args[2].toUpperCase());
+                    listTasks(taskService.filterByStatus(status));
+                }
+                default -> {
+                    System.out.println("Unknown filter type: " + filterType);
+                    System.out.println("Use priority or status.");
+                }
+            }
+        } catch (IllegalArgumentException exception) {
+            System.out.println("Invalid filter value.");
+            System.out.println("Priority: LOW, MEDIUM, HIGH");
+            System.out.println("Status: TODO, IN_PROGRESS, DONE");
+        }
+    }
+
+    private void sortTasks(String[] args, TaskService taskService) {
+        if (args.length < 2) {
+            System.out.println("Missing sort field.");
+            System.out.println("Usage:");
+            System.out.println("  ./gradlew run --args=\"sort dueDate\"");
+            System.out.println("  ./gradlew run --args=\"sort priority\"");
+            return;
+        }
+
+        String sortField = args[1].toLowerCase();
+
+        switch (sortField) {
+            case "duedate" -> listTasks(taskService.sort(new SortByDueDateStrategy()));
+            case "priority" -> listTasks(taskService.sort(new SortByPriorityStrategy()));
+            default -> {
+                System.out.println("Unknown sort field: " + sortField);
+                System.out.println("Use dueDate or priority.");
+            }
         }
     }
 
