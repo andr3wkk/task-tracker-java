@@ -1,19 +1,25 @@
 package edu.asu.sdt.tasktracker.cli;
 
 import edu.asu.sdt.tasktracker.exception.TaskNotFoundException;
+import edu.asu.sdt.tasktracker.export.CsvTaskExporter;
+import edu.asu.sdt.tasktracker.export.JsonTaskExporter;
+import edu.asu.sdt.tasktracker.export.TaskExporter;
 import edu.asu.sdt.tasktracker.model.Priority;
 import edu.asu.sdt.tasktracker.model.Task;
 import edu.asu.sdt.tasktracker.model.TaskStatus;
 import edu.asu.sdt.tasktracker.patterns.strategy.SortByDueDateStrategy;
 import edu.asu.sdt.tasktracker.patterns.strategy.SortByPriorityStrategy;
+import edu.asu.sdt.tasktracker.service.StatisticsService;
 import edu.asu.sdt.tasktracker.service.TaskService;
 import edu.asu.sdt.tasktracker.storage.JsonTaskStorage;
 import edu.asu.sdt.tasktracker.storage.TaskStorage;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Handles command-line input and output.
@@ -50,8 +56,8 @@ public class CommandLineApp {
             case "search" -> searchTasks(args, taskService);
             case "filter" -> filterTasks(args, taskService);
             case "sort" -> sortTasks(args, taskService);
-            case "export" -> printPlannedCommand("export");
-            case "stats" -> printPlannedCommand("stats");
+            case "export" -> exportTasks(args, taskService);
+            case "stats" -> printStatistics(taskService);
             default -> printUnknownCommand(command);
         }
     }
@@ -214,6 +220,65 @@ public class CommandLineApp {
         }
     }
 
+    private void exportTasks(String[] args, TaskService taskService) throws IOException {
+        if (args.length < 3) {
+            System.out.println("Missing arguments for export command.");
+            System.out.println("Usage:");
+            System.out.println("  ./gradlew run --args=\"export json exports/tasks.json\"");
+            System.out.println("  ./gradlew run --args=\"export csv exports/tasks.csv\"");
+            return;
+        }
+
+        String format = args[1].toLowerCase();
+        Path outputPath = Path.of(args[2]);
+
+        if (outputPath.getParent() != null) {
+            Files.createDirectories(outputPath.getParent());
+        }
+
+        TaskExporter exporter = switch (format) {
+            case "json" -> new JsonTaskExporter();
+            case "csv" -> new CsvTaskExporter();
+            default -> null;
+        };
+
+        if (exporter == null) {
+            System.out.println("Unknown export format: " + format);
+            System.out.println("Use json or csv.");
+            return;
+        }
+
+        exporter.export(taskService.getAllTasks(), outputPath);
+        System.out.println("Tasks exported to " + outputPath + ".");
+    }
+
+    private void printStatistics(TaskService taskService) {
+        List<Task> tasks = taskService.getAllTasks();
+        StatisticsService statisticsService = new StatisticsService();
+
+        long totalTasks = tasks.size();
+        long completedTasks = statisticsService.countCompleted(tasks);
+        long overdueTasks = statisticsService.countOverdue(tasks, LocalDate.now());
+        Map<String, Long> categoryCounts = statisticsService.countByCategory(tasks);
+
+        System.out.println("Task Statistics");
+        System.out.println("---------------");
+        System.out.println("Total tasks: " + totalTasks);
+        System.out.println("Completed tasks: " + completedTasks);
+        System.out.println("Overdue tasks: " + overdueTasks);
+        System.out.println();
+        System.out.println("Tasks by category:");
+
+        if (categoryCounts.isEmpty()) {
+            System.out.println("  No categories found.");
+            return;
+        }
+
+        for (Map.Entry<String, Long> entry : categoryCounts.entrySet()) {
+            System.out.println("  " + entry.getKey() + ": " + entry.getValue());
+        }
+    }
+
     private void listTasks(List<Task> tasks) {
         if (tasks.isEmpty()) {
             System.out.println("No tasks found.");
@@ -251,11 +316,6 @@ public class CommandLineApp {
         System.out.println("  sort                         Sort tasks by due date or priority");
         System.out.println("  export                       Export tasks to JSON or CSV");
         System.out.println("  stats                        Show task statistics");
-    }
-
-    private void printPlannedCommand(String command) {
-        System.out.println("Command '" + command + "' is recognized but not implemented yet.");
-        System.out.println("Use 'help' to see available commands.");
     }
 
     private void printUnknownCommand(String command) {
