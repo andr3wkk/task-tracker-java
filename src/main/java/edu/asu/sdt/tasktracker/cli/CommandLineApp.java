@@ -1,7 +1,9 @@
 package edu.asu.sdt.tasktracker.cli;
 
+import edu.asu.sdt.tasktracker.exception.TaskNotFoundException;
 import edu.asu.sdt.tasktracker.model.Priority;
 import edu.asu.sdt.tasktracker.model.Task;
+import edu.asu.sdt.tasktracker.model.TaskStatus;
 import edu.asu.sdt.tasktracker.service.TaskService;
 import edu.asu.sdt.tasktracker.storage.JsonTaskStorage;
 import edu.asu.sdt.tasktracker.storage.TaskStorage;
@@ -41,8 +43,8 @@ public class CommandLineApp {
             case "help" -> printHelp();
             case "add" -> addTask(args, taskService, storage);
             case "list" -> listTasks(taskService.getAllTasks());
-            case "update" -> printPlannedCommand("update");
-            case "delete" -> printPlannedCommand("delete");
+            case "update" -> updateTask(args, taskService, storage);
+            case "delete" -> deleteTask(args, taskService, storage);
             case "search" -> printPlannedCommand("search");
             case "filter" -> printPlannedCommand("filter");
             case "sort" -> printPlannedCommand("sort");
@@ -82,17 +84,79 @@ public class CommandLineApp {
         }
     }
 
+    private void updateTask(String[] args, TaskService taskService, TaskStorage storage) throws IOException {
+        if (args.length < 8) {
+            System.out.println("Missing arguments for update command.");
+            System.out.println("Usage:");
+            System.out.println("  ./gradlew run --args=\"update <id> <title> <description> <priority> "
+                    + "<category> <dueDate> <status>\"");
+            System.out.println("Example:");
+            System.out.println("  ./gradlew run --args=\"update 1 Study Reading MEDIUM School 2026-06-10 DONE\"");
+            return;
+        }
+
+        try {
+            int id = Integer.parseInt(args[1]);
+
+            Task updatedTask = Task.builder()
+                    .title(args[2])
+                    .description(args[3])
+                    .priority(Priority.valueOf(args[4].toUpperCase()))
+                    .category(args[5])
+                    .dueDate(LocalDate.parse(args[6]))
+                    .status(TaskStatus.valueOf(args[7].toUpperCase()))
+                    .build();
+
+            taskService.updateTask(id, updatedTask);
+            storage.save(taskService.getAllTasks());
+
+            System.out.println("Task " + id + " updated successfully.");
+        } catch (NumberFormatException exception) {
+            System.out.println("Invalid task ID. Use a number.");
+        } catch (DateTimeParseException exception) {
+            System.out.println("Invalid due date. Use format YYYY-MM-DD.");
+        } catch (TaskNotFoundException exception) {
+            System.out.println(exception.getMessage());
+        } catch (IllegalArgumentException exception) {
+            System.out.println("Invalid priority or status.");
+            System.out.println("Priority: LOW, MEDIUM, HIGH");
+            System.out.println("Status: TODO, IN_PROGRESS, DONE");
+        }
+    }
+
+    private void deleteTask(String[] args, TaskService taskService, TaskStorage storage) throws IOException {
+        if (args.length < 2) {
+            System.out.println("Missing task ID for delete command.");
+            System.out.println("Usage:");
+            System.out.println("  ./gradlew run --args=\"delete <id>\"");
+            return;
+        }
+
+        try {
+            int id = Integer.parseInt(args[1]);
+
+            taskService.deleteTask(id);
+            storage.save(taskService.getAllTasks());
+
+            System.out.println("Task " + id + " deleted successfully.");
+        } catch (NumberFormatException exception) {
+            System.out.println("Invalid task ID. Use a number.");
+        } catch (TaskNotFoundException exception) {
+            System.out.println(exception.getMessage());
+        }
+    }
+
     private void listTasks(List<Task> tasks) {
         if (tasks.isEmpty()) {
             System.out.println("No tasks found.");
             return;
         }
 
-        System.out.printf("%-4s %-20s %-10s %-15s %-12s %-10s%n",
+        System.out.printf("%-4s %-20s %-10s %-15s %-12s %-12s%n",
                 "ID", "Title", "Priority", "Category", "Due Date", "Status");
 
         for (Task task : tasks) {
-            System.out.printf("%-4d %-20s %-10s %-15s %-12s %-10s%n",
+            System.out.printf("%-4d %-20s %-10s %-15s %-12s %-12s%n",
                     task.getId(),
                     task.getTitle(),
                     task.getPriority(),
