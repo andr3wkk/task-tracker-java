@@ -72,6 +72,12 @@ public class TaskService {
                 .toList();
     }
 
+    public List<Task> filterByCategory(String category) {
+        return tasks.stream()
+                .filter(task -> task.getCategory().equalsIgnoreCase(category))
+                .toList();
+    }
+
     public List<Task> sort(TaskSortStrategy strategy) {
         return tasks.stream()
                 .sorted(strategy.comparator())
