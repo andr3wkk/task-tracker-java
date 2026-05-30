@@ -99,6 +99,20 @@ class TaskServiceTest {
     }
 
     @Test
+    void filterByCategoryReturnsOnlyMatchingTasks() {
+        // Black-box test: verifies category filter behavior.
+        // TDD red step: this test is written before filterByCategory is implemented.
+        TaskService service = new TaskService();
+        service.createTask(taskWithCategory("Project", "School"));
+        service.createTask(taskWithCategory("Gym", "Health"));
+
+        List<Task> results = service.filterByCategory("School");
+
+        assertEquals(1, results.size());
+        assertEquals("Project", results.get(0).getTitle());
+    }
+
+    @Test
     void sortByPriorityPlacesHighPriorityFirst() {
         // White-box test: verifies Strategy-based sorting branch for priority.
         TaskService service = new TaskService();
@@ -148,6 +162,16 @@ class TaskServiceTest {
                 .priority(priority)
                 .category("General")
                 .dueDate(dueDate)
+                .build();
+    }
+
+    private Task taskWithCategory(String title, String category) {
+        return Task.builder()
+                .title(title)
+                .description("Sample description")
+                .priority(Priority.MEDIUM)
+                .category(category)
+                .dueDate(LocalDate.now().plusDays(1))
                 .build();
     }
 }

@@ -7,6 +7,7 @@ import edu.asu.sdt.tasktracker.model.TaskStatus;
 import edu.asu.sdt.tasktracker.patterns.strategy.TaskSortStrategy;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * Business logic for managing tasks.
@@ -55,26 +56,30 @@ public class TaskService {
     }
 
     public List<Task> search(String keyword) {
-        return tasks.stream()
-                .filter(task -> task.containsKeyword(keyword))
-                .toList();
+        return filterTasks(task -> task.containsKeyword(keyword));
     }
 
     public List<Task> filterByPriority(Priority priority) {
-        return tasks.stream()
-                .filter(task -> task.getPriority() == priority)
-                .toList();
+        return filterTasks(task -> task.getPriority() == priority);
     }
 
     public List<Task> filterByStatus(TaskStatus status) {
-        return tasks.stream()
-                .filter(task -> task.getStatus() == status)
-                .toList();
+        return filterTasks(task -> task.getStatus() == status);
+    }
+
+    public List<Task> filterByCategory(String category) {
+        return filterTasks(task -> task.getCategory().equalsIgnoreCase(category));
     }
 
     public List<Task> sort(TaskSortStrategy strategy) {
         return tasks.stream()
                 .sorted(strategy.comparator())
+                .toList();
+    }
+
+    private List<Task> filterTasks(Predicate<Task> condition) {
+        return tasks.stream()
+                .filter(condition)
                 .toList();
     }
 
