@@ -76,6 +76,7 @@ task-tracker-java/
 ├── gradlew
 ├── gradlew.bat
 ├── CHANGELOG.md
+├── COURSEWORK_RUBRIC.md
 └── README.md
 ```
 
@@ -298,13 +299,14 @@ docs/DESIGN_PATTERNS.md
 
 ## Documentation
 
-Project documentation is stored in the `docs/` folder:
+Project documentation is stored in the `docs/` folder, with the self-assessment rubric stored in the repository root:
 
-* `TEST_PLAN.md` — testing strategy, black-box tests, white-box tests, acceptance tests, and coverage
-* `TDD_EVIDENCE.md` — red-green-refactor evidence for category filtering in the service layer
-* `DESIGN_PATTERNS.md` — Builder and Strategy pattern documentation
-* `ESTIMATION.md` — WBS estimation, T-shirt sizing, timeline, and risk register
-* `REFACTORING_REPORT.md` — code smells, refactoring work, and metrics
+* `docs/TEST_PLAN.md` — testing strategy, black-box tests, white-box tests, acceptance tests, and coverage
+* `docs/TDD_EVIDENCE.md` — red-green-refactor evidence for category filtering in the service layer
+* `docs/DESIGN_PATTERNS.md` — Builder and Strategy pattern documentation
+* `docs/ESTIMATION.md` — WBS estimation, T-shirt sizing, Agile user stories, Fibonacci story points, actual effort reflection, timeline, and risk register
+* `docs/REFACTORING_REPORT.md` — code smells, refactoring work, LOC metrics, cyclomatic complexity, maintainability metrics, and final reflection
+* `COURSEWORK_RUBRIC.md` — self-assessment checklist with scores and justifications
 
 ---
 
@@ -327,4 +329,4 @@ This workflow was used to provide evidence of CI, pull requests, code review com
 
 ## Current Status
 
-The main project implementation is complete. The current version includes the core task tracker features, automated tests, CI, coverage reporting, static analysis, design pattern documentation, TDD evidence, estimation, and refactoring documentation.
+The main project implementation is complete. The current version includes the core task tracker features, automated tests, CI, coverage reporting, static analysis, design pattern documentation, TDD evidence, estimation, refactoring documentation, and coursework self-assessment.
