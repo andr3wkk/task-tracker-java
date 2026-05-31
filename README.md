@@ -1,5 +1,7 @@
 # Personal Task Tracker
 
+![Java CI](https://github.com/andr3wkk/task-tracker-java/actions/workflows/ci.yml/badge.svg)
+
 A Java command-line task tracker created for the Software Enterprise Construction and Transition project.
 
 The application allows users to create, list, update, delete, search, filter, sort, export, and summarize personal tasks. Task data is saved locally in JSON format so tasks remain available between program runs.
