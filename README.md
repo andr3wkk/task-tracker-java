@@ -50,6 +50,8 @@ task-tracker-java/
 │   └── checkstyle/
 │       └── checkstyle.xml
 ├── docs/
+│   ├── CI_EVIDENCE.md
+│   ├── CODE_REVIEW_EVIDENCE.md
 │   ├── DESIGN_PATTERNS.md
 │   ├── ESTIMATION.md
 │   ├── FINAL_REPORT.md
@@ -309,6 +311,8 @@ Project documentation is stored in the `docs/` folder, with the self-assessment 
 
 * `docs/TEST_PLAN.md` — testing strategy, black-box tests, white-box tests, acceptance tests, and coverage
 * `docs/TDD_EVIDENCE.md` — red-green-refactor evidence for category filtering in the service layer
+* `docs/CODE_REVIEW_EVIDENCE.md` — evidence of pull request self-review comments across multiple PRs
+* `docs/CI_EVIDENCE.md` — evidence of CI workflow behavior, including a failed run and later fixed run
 * `docs/DESIGN_PATTERNS.md` — Builder and Strategy pattern documentation
 * `docs/ESTIMATION.md` — WBS estimation, T-shirt sizing, Agile user stories, Fibonacci story points, actual effort reflection, timeline, and risk register
 * `docs/REFACTORING_REPORT.md` — code smells, refactoring work, LOC metrics, cyclomatic complexity, maintainability metrics, and final reflection
@@ -330,10 +334,10 @@ The project uses a feature-branch workflow:
 7. Merge the pull request.
 8. Pull the updated `main` branch locally.
 
-This workflow was used to provide evidence of CI, pull requests, code review comments, and iterative development.
+This workflow was used to provide evidence of CI, pull requests, code review comments, CI failure/fix behavior, and iterative development.
 
 ---
 
 ## Current Status
 
-The main project implementation is complete. The current version includes the core task tracker features, automated tests, CI, coverage reporting, static analysis, design pattern documentation, TDD evidence, estimation, refactoring documentation, final report, and coursework self-assessment.
+The main project implementation is complete. The current version includes the core task tracker features, automated tests, CI, coverage reporting, static analysis, design pattern documentation, TDD evidence, code review evidence, CI evidence, estimation, refactoring documentation, final report, and coursework self-assessment.
